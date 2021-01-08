@@ -31,8 +31,6 @@ module.exports = function(app, Person)
         const person = new Person();
         person.name = req.body.name;
         person.number = req.body.number;
-        console.log(req.body.name)
-        console.log(req.body.number)
 
         person.save(function(err) {
             if (err) {
