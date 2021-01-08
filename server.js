@@ -20,51 +20,13 @@ db.once('open', function() {
     console.log("Conntected to mongod server");
 });
 
-mongoose.connect('mongodb://localhost/mongodb_tutorial')
+mongoose.connect('mongodb://localhost/mongodb_tutorial');
 
-const Person = require('./models/person')
+const Person = require('./models/person');
+const Image = require('./models/image');
 
-const router = require('./routes')(app, Person);
-
-// Image upload
-const form = "<!DOCTYPE HTML><html><body>" +
-"<form method='post' action='/upload' enctype='multipart/form-data'>" +
-"<input type='file' name='upload'/>" +
-"<input type='submit' /></form>" +
-"</body></html>";
-
-app.get('/', (req, res) => {
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.end(form);
-});
-
-const storage = multer.diskStorage({
-    destination: './uploads/',
-    filename: function(req, file, cb) {
-        return crypto.pseudoRandomBytes(16, function(err, raw) {
-            if (err) {
-                return cb(err);
-            }
-            return cb(null, "" + (raw.toString('hex')) + path.extname(file.originalname));
-        });
-    }
-});
-
-app.post('/upload', multer({storage: storage}).single('upload'), (req, res) => {
-    console.log(req.file);
-    console.log(req.body);
-    res.redirect('/uploads/' + req.file.filename);
-    console.log(req.file.filename);
-    return res.status(200).end();
-});
-
-app.get('/uploads/:upload', (req, res) => {
-    file = req.params.upload;
-    console.log(req.params.upload);
-    const img = fs.readFileSync(__dirname + '/uploads/' + file);
-    res.writeHead(200, {'Content-Type': 'image/png'});
-    res.end(img, 'binary');
-});
+const personsRouter = require('./routes/persons')(app, Person);
+const imageRouter = require('./routes/images')(app, Image);
 
 app.get('/home', (req, res) => {
     res.send('Hello DreamDP\n');
