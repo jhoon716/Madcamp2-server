@@ -24,9 +24,11 @@ mongoose.connect('mongodb://localhost/mongodb_tutorial');
 
 const Person = require('./models/person');
 const Image = require('./models/image');
+const Page = require('./models/page');
 
 const personsRouter = require('./routes/persons')(app, Person);
 const imageRouter = require('./routes/images')(app, Image);
+const diaryRouter = require('./routes/pages')(app, Page);
 
 app.get('/home', (req, res) => {
     res.send('Hello DreamDP\n');
