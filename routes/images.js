@@ -17,6 +17,14 @@ module.exports = function(app, Image)
         res.end(form);
     });
 
+    // Get all filenames from database
+    app.get('/api/images', (req, res) => {
+        Image.find({}, {_id: 0, filename: 1}, (err, images) => {
+            if (err) return res.status(500).send({error: 'database failure'});
+            res.json(images);
+        })
+    });
+
     const storage = multer.diskStorage({
         destination: './uploads/',
         filename: function(req, file, cb) {
@@ -51,24 +59,25 @@ module.exports = function(app, Image)
     
     // Get image by filename
     app.get('/api/images/:filename', (req, res) => {
-        const file = req.params.filename;
-        // console.log(req.params.filename);
-        Image.find({filename: req.params.filename}, {_id: 0, path: 1}, function (err, image) {
+        Image.findOne({filename: req.params.filename}, function (err, image) {
             if (err) return res.status(500).json({error: err});
             if (!image) return res.status(404).json({error: 'image not found'});
-            const img = fs.readFileSync(__dirname + '/../uploads/' + file);
+            const img = fs.readFileSync(__dirname + '/../uploads/' + image.filename);
             res.writeHead(200, {'Content-Type': 'image/png'});
             res.end(img, 'binary');
             // res.json(image);
         })
     });
 
-    app.delete('/api/images/:image_id', function(req, res) {
-        Image.remove({ _id: req.params.image_id }, function(err, output) {
+    app.delete('/api/images/:filename', function(req, res) {
+        Image.remove({ filename: req.params.filename }, function(err, output) {
             if (err) return res.status(500).json({ err: 'database failure' });
 
             // TODO: delete image file in /uploads/
-            res.status(204).end();
+            fs.unlink(__dirname + '/../uploads/' + req.params.filename, (err) => {
+                if (err) return res.status(500).json({ err: 'database failure2' });
+                res.status(204).end();
+            })
         })
     })
 }
