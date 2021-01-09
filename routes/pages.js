@@ -8,14 +8,14 @@ module.exports = function(app, Page)
         })
     });
     
-        // Get average rating
-        app.get('/api/pages/average', function(req, res) {
-            // TODO: get average
-            Page.aggregate([{$group: {_id: null, avg: {$avg:"$rating"}}}], (err, avg) => {
-                if (err) return res.status(500).json({error: err});
-                res.send(avg);
-            });
+    // Get average rating
+    app.get('/api/pages/average', function(req, res) {
+        // TODO: get average
+        Page.aggregate([{$group: {_id: null, avg: {$avg:"$rating"}}}], (err, avg) => {
+            if (err) return res.status(500).json({error: err});
+            res.send(avg);
         });
+    });
 
     // Get a page by date
     app.get('/api/pages/:date', function(req, res) {

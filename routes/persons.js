@@ -1,3 +1,5 @@
+const { now } = require("mongoose");
+
 module.exports = function(app, Person)
 {
     // Get all persons from Contacts
@@ -9,14 +11,14 @@ module.exports = function(app, Person)
     });
 
     // Get a single person
-    app.get('/api/persons/:person_id', function(req, res) {
-        Person.findOne({_id : req.params.person_id}, function(err, person) {
+    app.get('/api/persons/:uuid', function(req, res) {
+        Person.findOne({uuid : req.params.uuid}, function(err, person) {
             if (err) return res.status(500).json({error: err});
             if (!person) return res.status(404).json({error: 'person not found'});
             res.json(person);
         })
     });
-
+    
     // Get person by name
     app.get('/api/persons/name/:name', function(req, res) {
         Person.find({name: req.params.name}, {_id: 0, number: 1}, function(err, persons) {
@@ -25,12 +27,20 @@ module.exports = function(app, Person)
             res.json(persons);
         })
     });
-
+    
+    app.get('/api/persons/newer/:time', function(req, res) {
+        Person.find({timestamp: {$gte: new Date(req.params.time)}}, function(err, persons) {
+            res.json(persons);
+        });
+    })
+    
     // Create a person
     app.post('/api/persons', function(req, res) {
         const person = new Person();
+        person.uuid = req.body.uuid;
         person.name = req.body.name;
         person.number = req.body.number;
+        person.timestamp = new Date(now);
 
         person.save(function(err) {
             if (err) {
@@ -44,13 +54,14 @@ module.exports = function(app, Person)
     });
 
     // Update a person
-    app.put('/api/persons/:person_id', function(req, res) {
-        Person.findById(req.params.person_id, function(err, person) {
+    app.put('/api/persons/:uuid', function(req, res) {
+        Person.findOne({uuid: req.params.uuid}, function(err, person) {
             if (err) return res.status(500).json({ error: 'database failure' });
             if (!person) return res.status(404).json({ error: 'person not found' });
 
             if (req.body.name) person.name = req.body.name;
             if (req.body.number) person.number = req.body.number;
+            if (req.body.timestamp) person.timestamp = new Date(now);
 
             person.save(function(err) {
                 if (err) res.status(500).json({ error: 'failed to update' });
@@ -59,9 +70,9 @@ module.exports = function(app, Person)
         });
     });
 
-    //Delete a person
-    app.delete('/api/persons/:person_id', function(req, res) {
-        Person.remove({ _id: req.params.person_id }, function(err, output) {
+    // Delete a person
+    app.delete('/api/persons/:uuid', function(req, res) {
+        Person.remove({ _id: req.params.uuid }, function(err, output) {
             if (err) return res.status(500).json({ err: 'database failure' });
 
             // if (!output.result.n) return res.status(404).json({ error: 'person not found' });

@@ -7,7 +7,7 @@ module.exports = function(app, Image)
 {
     // Image upload
     const form = "<!DOCTYPE HTML><html><body>" +
-    "<form method='post' action='/api/image' enctype='multipart/form-data'>" +
+    "<form method='post' action='/api/images' enctype='multipart/form-data'>" +
     "<input type='file' name='image'/>" +
     "<input type='submit' /></form>" +
     "</body></html>";
@@ -20,16 +20,18 @@ module.exports = function(app, Image)
     const storage = multer.diskStorage({
         destination: './uploads/',
         filename: function(req, file, cb) {
-            return crypto.pseudoRandomBytes(16, function(err, raw) {
-                if (err) {
-                    return cb(err);
-                }
-                return cb(null, "" + (raw.toString('hex')) + path.extname(file.originalname));
-            });
+            return cb(null, file.originalname);
+        // filename: function(req, file, cb) {
+            // return crypto.pseudoRandomBytes(16, function(err, raw) {
+            // if (err) {
+            //         return cb(err);
+            //     }
+            //     return cb(null, "" + (raw.toString('hex')) + path.extname(file.originalname));
+            // });
         }
     });
     
-    app.post('/api/image', multer({storage: storage}).single('image'), (req, res) => {
+    app.post('/api/images', multer({storage: storage}).single('image'), (req, res) => {
         console.log(req.file);
         console.log(req.body);
         const image = new Image();
@@ -65,6 +67,7 @@ module.exports = function(app, Image)
         Image.remove({ _id: req.params.image_id }, function(err, output) {
             if (err) return res.status(500).json({ err: 'database failure' });
 
+            // TODO: delete image file in /uploads/
             res.status(204).end();
         })
     })
