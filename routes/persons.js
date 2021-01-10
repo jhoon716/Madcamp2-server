@@ -40,11 +40,11 @@ module.exports = function(app, Person)
         person.uuid = req.body.uuid;
         person.name = req.body.name;
         person.number = req.body.number;
-        person.timestamp = new Date(now);
+        person.timestamp = new Date();
 
         person.save(function(err) {
             if (err) {
-                console.err(err);
+                console.error(err);
                 res.json({result: 0});
                 return;
             }
@@ -61,7 +61,7 @@ module.exports = function(app, Person)
 
             if (req.body.name) person.name = req.body.name;
             if (req.body.number) person.number = req.body.number;
-            if (req.body.timestamp) person.timestamp = new Date(now);
+            person.timestamp = new Date(now);
 
             person.save(function(err) {
                 if (err) res.status(500).json({ error: 'failed to update' });
