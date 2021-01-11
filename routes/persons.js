@@ -1,5 +1,3 @@
-const { now } = require("mongoose");
-
 module.exports = function(app, Person)
 {
     // Get all persons from Contacts
@@ -28,6 +26,7 @@ module.exports = function(app, Person)
         })
     });
     
+    // Get persons updated after given time
     app.get('/api/persons/newer/:time', function(req, res) {
         Person.find({timestamp: {$gte: new Date(req.params.time)}}, function(err, persons) {
             res.json(persons);
@@ -50,6 +49,16 @@ module.exports = function(app, Person)
             }
 
             res.json({result: 1});
+        })
+    });
+
+    // Create many people
+    // TODO: Mark timestamps on each document(person)
+    app.post('/api/persons/many', function(req, res) {
+        const persons = req.body;
+        Person.insertMany(persons, function(err, result) {
+            if (err) return res.status(500).json({error: err});
+            res.json(result);
         })
     });
 

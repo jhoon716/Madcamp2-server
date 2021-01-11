@@ -13,14 +13,14 @@ module.exports = function(app, Page)
         // TODO: get average
         Page.aggregate([{$group: {_id: null, avg: {$avg:"$rating"}}}], (err, avg) => {
             if (err) return res.status(500).json({error: err});
-            res.send(avg);
+            res.send(String(avg[0].avg));
+            // res.send(avg);
         });
     });
 
     // Get a page by date
     app.get('/api/pages/:date', function(req, res) {
         const date = new Date(req.params.date)
-        console.log(date);
         Page.findOne({date: date}, function(err, page) {
             if (err) return res.status(500).json({error: err});
             if (!page) return res.status(404).json({error: 'page not found'});
@@ -49,18 +49,12 @@ module.exports = function(app, Page)
 
     // Update a page
     app.put('/api/pages/:date', function(req, res) {
-        Page.find(req.param.date, function(err, page) {
+        console.log(req.body);
+        Page.updateOne({date: req.params.date},
+            {$set:{weather: req.body.weather, comment: req.body.comment, rating: req.body.rating}},
+            function(err, page) {
             if (err) return res.status(500).json({error: 'database failure'});
-            if (!page) return res.status(4040).json({error: 'page not found'});
-
-            if (req.body.weather) page.weather = req.body.weather;
-            if (req.body.comment) page.comment = req.body.comment;
-            if (req.body.rating) page.raing = req.body.rating;
-
-            page.save(function(err) {
-                if (err) res.status(500).json({error: 'failed to update'});
-                res.json({message: 'page updated'});
-            });
+            if (!page) return res.status(404).json({error: 'page not found'});
         });
     });
 
