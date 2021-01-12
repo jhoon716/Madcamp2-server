@@ -18,8 +18,8 @@ module.exports = function(app, Image)
     });
 
     // Get all filenames from database
-    app.get('/api/images', (req, res) => {
-        Image.find({}, {_id: 0, filename: 1}, (err, images) => {
+    app.get('/api/images/:fid', (req, res) => {
+        Image.find({fid: req.params.fid}, {_id: 0, filename: 1}, (err, images) => {
             if (err) return res.status(500).send({error: 'database failure'});
             res.json(images);
         })
@@ -45,6 +45,7 @@ module.exports = function(app, Image)
         const image = new Image();
         image.filename = req.file.originalname;
         image.path = req.file.path;
+        image.fid = req.body.fid;
         image.save(function(err) {
             if (err) {
                 console.err(err);
@@ -58,8 +59,8 @@ module.exports = function(app, Image)
     });
     
     // Get image by filename
-    app.get('/api/images/:filename', (req, res) => {
-        Image.findOne({filename: req.params.filename}, function (err, image) {
+    app.get('/api/images/:fid/:filename', (req, res) => {
+        Image.findOne({fid: req.params.fid, filename: req.params.filename}, function (err, image) {
             if (err) return res.status(500).json({error: err});
             if (!image) return res.status(404).json({error: 'image not found'});
             const img = fs.readFileSync(__dirname + '/../uploads/' + image.filename);
@@ -69,11 +70,10 @@ module.exports = function(app, Image)
         })
     });
 
-    app.delete('/api/images/:filename', function(req, res) {
-        Image.remove({ filename: req.params.filename }, function(err, output) {
+    app.delete('/api/images/:fid/:filename', function(req, res) {
+        Image.remove({fid: req.params.fid, filename: req.params.filename}, function(err, output) {
             if (err) return res.status(500).json({ err: 'database failure' });
 
-            // TODO: delete image file in /uploads/
             fs.unlink(__dirname + '/../uploads/' + req.params.filename, (err) => {
                 if (err) return res.status(500).json({ err: 'database failure2' });
                 res.status(204).end();

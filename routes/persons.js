@@ -1,16 +1,16 @@
 module.exports = function(app, Person)
 {
     // Get all persons from Contacts
-    app.get('/api/persons', function(req, res) {
-        Person.find(function(err, persons) {
+    app.get('/api/persons/:fid', function(req, res) {
+        Person.find({fid: req.params.fid}, function(err, persons) {
             if (err) return res.status(500).send({error: 'database failure'});
             res.json(persons);
         })
     });
 
     // Get a single person
-    app.get('/api/persons/:uuid', function(req, res) {
-        Person.findOne({uuid : req.params.uuid}, function(err, person) {
+    app.get('/api/persons/:fid/:uuid', function(req, res) {
+        Person.findOne({fid: req.params.fid, uuid : req.params.uuid}, function(err, person) {
             if (err) return res.status(500).json({error: err});
             if (!person) return res.status(404).json({error: 'person not found'});
             res.json(person);
@@ -18,8 +18,8 @@ module.exports = function(app, Person)
     });
     
     // Get person by name
-    app.get('/api/persons/name/:name', function(req, res) {
-        Person.find({name: req.params.name}, {_id: 0, number: 1}, function(err, persons) {
+    app.get('/api/persons/name/:fid/:name', function(req, res) {
+        Person.find({fid: req.params.fid, name: req.params.name}, {_id: 0, number: 1}, function(err, persons) {
             if (err) return res.status(500).json({error: err});
             if (persons.length === 0) return res.status(404).json({error: 'person not found'});
             res.json(persons);
@@ -27,8 +27,8 @@ module.exports = function(app, Person)
     });
     
     // Get persons updated after given time
-    app.get('/api/persons/newer/:time', function(req, res) {
-        Person.find({timestamp: {$gte: new Date(req.params.time)}}, function(err, persons) {
+    app.get('/api/persons/newer/:fid/:time', function(req, res) {
+        Person.find({fid: req.params.fid, timestamp: {$gte: new Date(req.params.time)}}, function(err, persons) {
             res.json(persons);
         });
     })
@@ -40,6 +40,7 @@ module.exports = function(app, Person)
         person.name = req.body.name;
         person.number = req.body.number;
         person.timestamp = new Date();
+        person.fid = req.body.fid;
 
         person.save(function(err) {
             if (err) {
@@ -63,8 +64,8 @@ module.exports = function(app, Person)
     });
 
     // Update a person
-    app.put('/api/persons/:uuid', function(req, res) {
-        Person.findOne({uuid: req.params.uuid}, function(err, person) {
+    app.put('/api/persons/:fid/:uuid', function(req, res) {
+        Person.findOne({fid: req.params.fid, uuid: req.params.uuid}, function(err, person) {
             if (err) return res.status(500).json({ error: 'database failure' });
             if (!person) return res.status(404).json({ error: 'person not found' });
 
@@ -80,8 +81,8 @@ module.exports = function(app, Person)
     });
 
     // Delete a person
-    app.delete('/api/persons/:uuid', function(req, res) {
-        Person.remove({ uuid: req.params.uuid }, function(err, output) {
+    app.delete('/api/persons/:fid/:uuid', function(req, res) {
+        Person.remove({fid: req.params.fid, uuid: req.params.uuid}, function(err, output) {
             if (err) return res.status(500).json({ err: 'database failure' });
 
             // if (!output.result.n) return res.status(404).json({ error: 'person not found' });
