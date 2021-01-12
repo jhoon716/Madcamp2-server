@@ -9,18 +9,19 @@ module.exports = function(app, Page)
     });
     
     // Get average rating
-    app.get('/api/pages/average', function(req, res) {
-        Page.aggregate([{$group: {_id: null, avg: {$avg:"$rating"}}}], (err, avg) => {
+    app.get('/api/pages/average/:fid', function(req, res) {
+        Page.aggregate([{$group: {_id: "$fid", avg: {$avg:"$rating"}}}], (err, avg) => {
             if (err) return res.status(500).json({error: err});
+            // TODO: Fix. Only workw when one profile is registered.
             res.send(String(avg[0].avg));
             // res.send(avg);
         });
     });
 
     // Get a page by date
-    app.get('/api/pages/:date', function(req, res) {
+    app.get('/api/pages/:fid/:date', function(req, res) {
         const date = new Date(req.params.date)
-        Page.findOne({date: date}, function(err, page) {
+        Page.findOne({date: date, fid: req.params.fid}, function(err, page) {
             if (err) return res.status(500).json({error: err});
             if (!page) return res.status(404).json({error: 'page not found'});
             res.json(page);
@@ -34,6 +35,7 @@ module.exports = function(app, Page)
         page.weather = req.body.weather;
         page.comment = req.body.comment;
         page.rating = req.body.rating;
+        page.fid = req.body.fid;
 
         page.save(function(err) {
             if (err) {
@@ -47,9 +49,9 @@ module.exports = function(app, Page)
     });
 
     // Update a page
-    app.put('/api/pages/:date', function(req, res) {
+    app.put('/api/pages/:fid/:date', function(req, res) {
         console.log(req.body);
-        Page.updateOne({date: req.params.date},
+        Page.updateOne({date: req.params.date, fid: req.params.fid},
             {$set:{weather: req.body.weather, comment: req.body.comment, rating: req.body.rating}},
             function(err, page) {
             if (err) return res.status(500).json({error: 'database failure'});
@@ -58,8 +60,8 @@ module.exports = function(app, Page)
     });
 
     // Delete a page
-    app.delete('/api/pages/:date', function(req, res) {
-        Page.remove({date: req.params.date}, function(err, output) {
+    app.delete('/api/pages/:fid/:date', function(req, res) {
+        Page.remove({date: req.params.date, fid: req.params.fid}, function(err, output) {
             if (err) return res.status(500).json({err: 'database failure'});
 
             res.status(204).end;
