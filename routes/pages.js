@@ -10,7 +10,6 @@ module.exports = function(app, Page)
     
     // Get average rating
     app.get('/api/pages/average', function(req, res) {
-        // TODO: get average
         Page.aggregate([{$group: {_id: null, avg: {$avg:"$rating"}}}], (err, avg) => {
             if (err) return res.status(500).json({error: err});
             res.send(String(avg[0].avg));
@@ -38,7 +37,7 @@ module.exports = function(app, Page)
 
         page.save(function(err) {
             if (err) {
-                console.err(err);
+                console.error(err);
                 res.json({result: 0});
                 return;
             }

@@ -81,7 +81,7 @@ module.exports = function(app, Person)
 
     // Delete a person
     app.delete('/api/persons/:uuid', function(req, res) {
-        Person.remove({ _id: req.params.uuid }, function(err, output) {
+        Person.remove({ uuid: req.params.uuid }, function(err, output) {
             if (err) return res.status(500).json({ err: 'database failure' });
 
             // if (!output.result.n) return res.status(404).json({ error: 'person not found' });
